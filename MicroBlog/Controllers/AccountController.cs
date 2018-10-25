@@ -45,6 +45,8 @@ namespace MicroBlog.Controllers
             return RedirectToAction("login");
         }
 
+        
+
         [HttpPost("auth/login")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(LoginViewModel model)
