@@ -1,0 +1,95 @@
+﻿@using MicroBlog.Models.ViewModels
+@model RegisterViewModel
+
+<div class="auth-container container">
+    <div class="form-container">
+        <!-- Default form register -->
+        <form asp-action="@ViewBag.FormAction" asp-controller="Account" method="post" class="text-center border border-light p-5" novalidate>
+            <p class="h4 mb-4">Sign up</p>
+            @*@Html.ValidationSummary()
+                @Html.AntiForgeryToken()*@
+            <div class="form-row mb-4 text-danger" asp-validation-summary="ModelOnly"></div>
+
+            <div class="form-row mb-4">
+                <div class="col">
+                    <!-- First name -->
+                    @*@Html.LabelFor(x => x.FirstName);
+                        @Html.EditorFor(x => x.FirstName, new { @class = "form-control", placeholder = "First name" })*@
+                    <input asp-for="FirstName" type="text" id="defaultRegisterFormFirstName" class="form-control" placeholder="First name" />
+                    <span asp-validation-for="FirstName" class="validation-feedback text-danger">
+                    </span>
+                </div>
+                <div class="col">
+                    <!-- Last name -->
+                    <input asp-for="LastName" type="text" id="defaultRegisterFormLastName" class="form-control" placeholder="Last name" />
+                    <span asp-validation-for="LastName" class="validation-feedback text-danger">
+                    </span>
+                </div>
+            </div>
+
+            <div class="form-row mb-4">
+                <div class="col">
+                    <!-- E-mail -->
+                    <input asp-for="Email" type="email" id="defaultRegisterFormEmail" class="form-control" placeholder="E-mail" />
+                    <span asp-validation-for="Email" class="validation-feedback text-danger">
+                    </span>
+                </div>
+                <div class="col">
+                    <!-- Phone number -->
+                    <input asp-for="PhoneNumber" type="text" id="defaultRegisterFormPhoneNumber" class="form-control" placeholder="Phone number" aria-describedby="defaultRegisterFormPhoneHelpBlock" />
+                    <span asp-validation-for="PhoneNumber" class="validation-feedback text-danger">
+                    </span>
+                </div>
+            </div>
+
+            <div class="form-row mb-4">
+                <div class="col">
+                    <!-- Password -->
+                    <input asp-for="Password" type="password" id="defaultRegisterFormPassword" class="form-control" placeholder="Password" aria-describedby="defaultRegisterFormPasswordHelpBlock" />
+                    @*<small id="defaultRegisterFormPasswordHelpBlock" class="form-text text-muted mb-4">
+                            At least 8 characters and 1 digit
+                        </small>*@
+                    <span asp-validation-for="Password" class="validation-feedback text-danger">
+                    </span>
+                </div>
+                <div class="col">
+                    <!--Confirm Password -->
+                    <input asp-for="ConfirmPassword" type="password" id="defaultRegisterFormConfirmPassword" class="form-control" placeholder="Confirm Password" aria-describedby="defaultRegisterFormPasswordHelpBlock" />
+                    <span asp-validation-for="ConfirmPassword" class="validation-feedback text-danger">
+                    </span>
+                </div>
+            </div>
+
+            <!-- Sign up button -->
+            <button class="btn btn-info my-4 btn-block" type="submit">Sign up</button>
+
+            <p>
+                Already have an account?
+                <a asp-route="login">Login</a>
+            </p>
+            <!-- Social register -->
+            <p>or sign up with:</p>
+            <a type="button" class="light-blue-text mx-2">
+                <i class="fa fa-facebook"></i>
+            </a>
+            <a type="button" class="light-blue-text mx-2">
+                <i class="fa fa-twitter"></i>
+            </a>
+            <a type="button" class="light-blue-text mx-2">
+                <i class="fa fa-linkedin"></i>
+            </a>
+            <a type="button" class="light-blue-text mx-2">
+                <i class="fa fa-github"></i>
+            </a>
+            <hr>
+            <!-- Terms of service -->
+            <p>
+                By clicking
+                <em>Sign up</em> you agree to our
+                <a href="" target="_blank">terms of service</a> @*and
+                    <a href="" target="_blank">terms of service</a>.*@
+            </p>
+        </form>
+        <!-- Default form register -->
+    </div>
+</div>

@@ -1,0 +1,104 @@
+﻿@using MicroBlog.Models.ViewModels
+@model PostPagesViewModel
+@{
+    Layout = "~/Views/Shared/_GeneralLayout.cshtml";
+    ViewBag.Title = "Posts";
+}
+<div class="container">
+    <h2>Posts</h2>
+    <div class="row">
+        <div class="col-xs-12 col-md-12">
+            <form class="form-inline md-form form-sm active-purple active-purple-2">
+                <i class="fa fa-search" aria-hidden="true"></i>
+                <input class="form-control form-control-sm ml-3 w-75" type="text" placeholder="Search" aria-label="Search">
+            </form>
+        </div>
+     
+    </div>
+
+    <!--Post Cards-->
+    @if (Model.Posts.Count() > 0)
+    {
+    <div class="row">
+
+        @foreach (var post in Model.Posts)
+        {
+            <div class="col-lg-4 col-md-6 col-xs-6 mb-50">
+
+                <div class="card">
+
+                    <!-- Card image -->
+                    <div class="view overlay">
+                        <img class="card-img-top" src="~/StaticFiles/@post.Image" alt="Post Banner">
+                        <a asp-controller="Post" asp-action="Detail" asp-route-id="@post.Id">
+                            <div class="mask rgba-white-slight"></div>
+                        </a>
+                    </div>
+
+                    <a asp-controller="Post" asp-action="Detail" asp-route-id="@post.Id" class="btn-floating btn-action ml-auto mr-4 mdb-color lighten-3"><i class="fa fa-chevron-right pl-1"></i></a>
+
+                    <!-- Card content -->
+                    <div class="card-body">
+                        <!-- Title -->
+                        <h4 class="card-title">@post.Title</h4>
+
+                        <!-- Text -->
+                        <p class="card-text">
+                            @post.Synopsis
+                        </p>
+                        <!-- Button -->
+                        @*<a href="#" class="btn btn-primary">Button</a>*@
+                    </div>
+
+                    <!--Card Footer-->
+                    <div class="rounded-bottom mdb-color lighten-3 text-center pt-3">
+                        <ul class="list-unstyled list-inline font-small">
+                            <li class="list-inline-item pr-2 white-text"><i class="fa fa-clock-o pr-1"></i>@post.UpdatedAt.ToString("dd/MM/yyyy")</li>
+
+                            @if (@post.CommentCount > 0)
+                            {
+                                <li class="list-inline-item pr-2">
+                                    <a href="#" class="white-text">
+                                        <i class="fa fa-comments-o pr-1"></i>@post.CommentCount
+                                    </a>
+                                </li>
+                            }
+
+                            @if (@post.Claps > 0)
+                             {
+                                <li class="list-inline-item pr-2">
+                                    <a href="#" class="white-text">
+                                        <i class="fa fa-sign-language pr-1"></i>@post.CommentCount
+                                    </a>
+                                </li>
+                            }
+
+
+                        @*<li class="list-inline-item pr-2"><a href="#" class="white-text"><i class="fa fa-facebook pr-1"> </i>21</a></li>
+    <li class="list-inline-item"><a href="#" class="white-text"><i class="fa fa-twitter pr-1"> </i>5</a></li>*@
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        }
+
+    </div>
+    <!--End of Posts Card-->
+    }
+    else
+    {
+        <h3>No New Post</h3>
+    }
+    <div class="fixed-action-btn" style="bottom: 45px; right: 24px;">
+        <a asp-route="add-post" class="btn-floating btn-lg red">
+            <i class="fa fa-plus"></i>
+        </a>
+    </div>
+
+    <!--Pagination-->
+    @if (Model.Posts.Count() > 0)
+    {
+        @await Html.PartialAsync("_PaginationPartial", Model.PostPager)
+    }
+    <!--End of Pagination-->
+</div>

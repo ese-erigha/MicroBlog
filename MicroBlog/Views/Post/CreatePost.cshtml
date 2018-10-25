@@ -1,0 +1,98 @@
+﻿@using MicroBlog.Models.ViewModels
+@model PostViewModel
+@{
+    Layout = "~/Views/Shared/_GeneralLayout.cshtml";
+    ViewBag.Title = "Create Post";
+}
+<div class="container">
+
+    <form id="form" asp-action="CreatePost" asp-controller="Post" method="post" enctype="multipart/form-data" class="text-center p-5" novalidate>
+
+        <p class="h4 mb-4">New Post</p>
+
+        <div class="form-row mb-4">
+            <!-- Post Title -->
+            <input asp-for="Title" type="text" class="form-control" placeholder="Title" />
+            <span asp-validation-for="Title" class="validation-feedback text-danger">
+            </span>
+        </div>
+
+        <div class="form-row mb-4">
+            <!-- Post Title -->
+            <input asp-for="Synopsis" type="text" class="form-control" placeholder="Synopsis" />
+            <span asp-validation-for="Synopsis" class="validation-feedback text-danger">
+            </span>
+        </div>
+
+
+        <div class="form-row mb-4">
+            <!-- Post Image -->
+            <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                    <span class="input-group-text" id="inputGroupFileAddon01">Upload</span>
+                </div>
+                <div class="custom-file">
+                    <input type="file" asp-for="File" class="custom-file-input" id="file-input" aria-describedby="inputGroupFileAddon01">
+                    <label id="file-label" class="custom-file-label" for="file-input">Choose Image</label>
+                </div>
+            </div>
+            <br />
+            <div>
+                <span id="image-validator" asp-validation-for="Image" class="validation-feedback text-danger">
+                </span>
+            </div>
+        </div>
+
+        <div class="form-row mb-4">
+            <textarea class="form-control z-depth-1" id="markdown-editor" asp-for="Content"></textarea>
+            <span asp-validation-for="Content" class="validation-feedback text-danger">
+            </span>
+        </div>
+        
+        <!-- Sign in button -->
+        <button id="btn-submit" class="btn btn-info btn-block my-4" type="submit">Save Post</button>
+
+    </form>
+
+
+</div>
+
+@section Scripts{
+
+    <script src='https://cloud.tinymce.com/stable/tinymce.min.js'></script>
+    <script type="text/javascript">
+        $(document).ready(function(){
+
+                tinymce.init({
+                    selector: '#markdown-editor',
+                    height: 350,
+                    theme: 'modern',
+                });
+
+            @*$(document.body).on('mouseleave','#markdown-editor', function(evt){
+                //evt.preventDefault();
+                $('#content').val($('#markdown-editor').html());
+                //$('#form').submit();
+            });*@
+
+
+            $(document.body).on("change","#file-input",function(evt){
+
+                let filesCount = $(this)[0].files.length;
+
+                if(filesCount > 0){
+
+                    //Update label with file name
+                    let fileName = $(this)[0].files[0].name;
+                    $('#file-label').html(fileName);
+                    $('#image-validator').html('');
+                }else{
+
+                  $('#file-label').html('Choose Image');
+                }
+
+            });
+
+        });
+    </script>
+}

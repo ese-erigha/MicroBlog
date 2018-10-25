@@ -1,0 +1,82 @@
+﻿@using MicroBlog.Models.ViewModels
+@model LoginViewModel
+
+@{
+    Layout = "~/Views/Shared/_MasterLayout.cshtml";
+    ViewBag.Title = "Login";
+}
+
+
+<div class="auth-container container">
+
+    <div class="form-container">
+        <!-- Default form login -->
+        <form asp-action="Login" asp-controller="Account" method="post" class="text-center border border-light p-5" novalidate>
+
+            <p class="h4 mb-4">Sign in</p>
+
+            <div class="form-row mb-4 text-danger" asp-validation-summary="ModelOnly"></div>
+
+            @if (ViewBag.Error)
+            {
+                <div class="form-row mb-4 text-danger">@ViewBag.Error</div>
+            }
+
+            @if (ViewBag.Message)
+            {
+                <div class="form-row mb-4 text-success">@ViewBag.Message</div>
+            }
+
+            <!-- Email -->
+            <input asp-for="Email" type="text" id="defaultLoginFormEmail" value="ese.erigha@gmail.com" class="form-control mb-4" placeholder="Email" />
+            <span asp-validation-for="Email" class="validation-feedback text-danger">
+
+            </span>
+
+            <!-- Password -->
+            <input asp-for="Password" type="password" id="defaultLoginFormPassword" value="lexEME5195.." class="form-control mb-4" placeholder="Password" />
+            <span asp-validation-for="Password" class="validation-feedback text-danger">
+
+            </span>
+
+            <div class="d-flex justify-content-around">
+                <div>
+                    <!-- Remember me -->
+                    <div class="custom-control custom-checkbox">
+                        <input asp-for="RememberBe" type="checkbox" class="custom-control-input" id="defaultLoginFormRemember" />
+                        <label asp-for="RememberBe" class="custom-control-label" for="defaultLoginFormRemember">Remember me</label>
+                    </div>
+                </div>
+                <div>
+                    <!-- Forgot password -->
+                    <a asp-controller="Account" asp-action="ForgotPassword">Forgot password?</a>
+                </div>
+            </div>
+
+            <input type="hidden" asp-for="ReturnUrl" value="@Model.ReturnUrl" />
+
+            <!-- Sign in button -->
+            <button class="btn btn-info btn-block my-4" type="submit">Sign in</button>
+            <!-- Register -->
+            <p>
+                Not a member?
+                <a asp-route="user-register">Register</a>
+            </p>
+            <!-- Social login -->
+            <p>or sign in with:</p>
+            <a type="button" class="light-blue-text mx-2">
+                <i class="fa fa-facebook"></i>
+            </a>
+            <a type="button" class="light-blue-text mx-2">
+                <i class="fa fa-twitter"></i>
+            </a>
+            <a type="button" class="light-blue-text mx-2">
+                <i class="fa fa-linkedin"></i>
+            </a>
+            <a type="button" class="light-blue-text mx-2">
+                <i class="fa fa-github"></i>
+            </a>
+        </form>
+        <!-- Default form login -->
+    </div>
+</div>

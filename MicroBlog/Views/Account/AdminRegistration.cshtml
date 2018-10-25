@@ -1,0 +1,12 @@
+﻿@using MicroBlog.Models.ViewModels
+@model RegisterViewModel
+
+@{
+    Layout = "~/Views/Shared/_MasterLayout.cshtml";
+    ViewBag.Title = " Admin Registration";
+    ViewBag.FormAction = "AdminRegister";
+}
+
+
+@await Html.PartialAsync("_RegistrationPartial", Model)
+

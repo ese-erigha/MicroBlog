@@ -1,0 +1,383 @@
+﻿@using MicroBlog.Models.ViewModels
+@model UserDetailsViewModel
+
+@{
+    Layout = "~/Views/Shared/_GeneralLayout.cshtml";
+    ViewBag.Title = "Users";
+}
+<div class="container">
+    <h3>Users</h3>
+    <div class="row">
+        <div class="col-xs-8 col-md-6">
+            <form class="form-inline md-form form-sm active-purple active-purple-2">
+                <i class="fa fa-search" aria-hidden="true"></i>
+                <input class="form-control form-control-sm ml-3 w-75" type="text" placeholder="Search" aria-label="Search">
+            </form>
+        </div>
+
+        <div class="col-xs-4 col-md-2">
+            <a href="" class="btn btn-default btn-rounded mb-4" id="modalUserFormTrigger">Add</a>
+        </div>
+    </div>
+
+    <!--Users Table-->
+    <div class="row m-70">
+        <table class="table">
+            <thead class="black white-text">
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">First Name</th>
+                    <th scope="col">Last Name</th>
+                    <th scope="col">Email</th>
+                    <th scope="col">Phone number</th>
+                    <th scope="col">Action</th>
+                </tr>
+            </thead>
+            <tbody id="user-table">
+
+                @foreach (var user in Model.PagedUsers)
+                {
+                    <tr id="data-@user.Id">
+                        <th scope="row">@user.Id</th>
+                        <td>@user.FirstName</td>
+                        <td>@user.LastName</td>
+                        <td>@user.Email</td>
+                        <td>@user.PhoneNumber</td>
+                        <td>
+                            <button data-id="@user.Id" class="btn btn-primary btn-sm edit-user"><i class="fa fa-edit mr-1"></i>Edit</button>
+                        </td>
+                    </tr>
+                }
+
+            </tbody>
+        </table>
+    </div>
+    <!--End of Users Table-->
+    <!--Pagination-->
+    @await Html.PartialAsync("_PaginationPartial", Model.Pager)
+    <!--End of Pagination-->
+
+</div>
+
+<!--Add User Modal-->
+<div class="modal fade" id="modalUserForm" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header text-center">
+                <h4 class="modal-title w-100 font-weight-bold">New User</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body mx-3">
+
+                <div id="alert-user-modal-status" class="alert alert-dismissable fade hide" role="alert">
+                    <span id="ajax-message"></span>
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+
+                <form asp-action="UserRegister" asp-controller="Account" method="post" class="text-center p-5" novalidate>
+
+                    <div class="form-row mb-4">
+                        <!-- First Name -->
+                        <input type="text" id="firstName" class="form-control" value="" placeholder="First name" />
+                        <div id="firstName_Validator" class="validation-feedback text-danger">
+
+                        </div>
+                    </div>
+                    <div class="form-row mb-4">
+                        <!-- Last Name -->
+                        <input id="lastName" type="text" class="form-control" placeholder="Last name" />
+                        <div id="lastName_Validator" class="validation-feedback text-danger">
+
+                        </div>
+                    </div>
+
+                    <div class="form-row mb-4">
+                        <!-- E-mail -->
+                        <input type="email" id="email" class="form-control" placeholder="E-mail" />
+                        <div id="email_Validator" class="validation-feedback text-danger">
+
+                        </div>
+                    </div>
+
+                    <div class="form-row mb-4">
+                        <!-- Phone Number -->
+                        <input type="text" id="phoneNumber" class="form-control" placeholder="Phone number" />
+                        <div id="phoneNumber_Validator" class="validation-feedback text-danger">
+
+                        </div>
+                    </div>
+
+                    <div class="form-row mb-4">
+                        <!-- Password -->
+                        <input type="password" id="password" class="form-control" placeholder="Password" />
+
+                        <div id="password_Validator" class="validation-feedback text-danger">
+
+                        </div>
+
+
+                    </div>
+
+                    <div class="form-row mb-4">
+                        <!--Confirm Password -->
+                        <input type="password" id="confirmPassword" class="form-control" placeholder="Confirm Password" aria-describedby="defaultRegisterFormPasswordHelpBlock" />
+                        <div id="confirmPassword_Validator" class="validation-feedback text-danger">
+
+                        </div>
+                    </div>
+
+                </form>
+            </div>
+            <div class="modal-footer d-flex justify-content-center">
+                <button class="btn btn-default ajax-btn">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!--User Modal-->
+
+@section Scripts{
+
+    <script type="text/javascript">
+
+    $(document).ready(function(){
+
+         let isAjaxAdd = true;
+         let userIdToWorkOn = 0;
+         let updateData = {};
+         let userActionUrls = {
+
+            "ADD" : "@Url.Action("UserRegister", "Account")",
+            "GET": "user/account/",
+            "UPDATE": "user/account/"
+         };
+
+        let getData = function(isAjaxAdd = true){
+
+                let data = {
+                    "FirstName": $("#firstName").val(),
+                    "LastName": $("#lastName").val(),
+                    "Email": $("#email").val(),
+                    "PhoneNumber": $("#phoneNumber").val()
+                };
+
+                updateData = Object.assign({},data);
+
+                if(isAjaxAdd){
+
+                    data = {...data,
+                           ...{
+                            "Password":  $("#password").val(),
+                            "ConfirmPassword": $("#confirmPassword").val()
+                           }
+                    }
+                }
+                return JSON.stringify(data);
+        };
+
+        let createAlert = function(){
+            let template = '<div id="alert-user-modal-status" class="alert alert-dismissable fade hide" role="alert"><span id="ajax-message"></span><button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>';
+            return template;
+        }
+
+        let onPostAjaxOperation = function(){
+
+            $('#alert-user-modal-status').removeClass("hide");
+            $('#alert-user-modal-status').addClass("alert-success show");
+            $('#ajax-message').html("User saved successfully");
+            window.setTimeout(()=>{
+                $('#alert-user-modal-status').alert('close');
+                window.setTimeout(()=>{
+                    let template = createAlert();
+                    $('.modal-body').prepend(template);
+                },2000);
+            },5000);
+        };
+
+        let convertObjectKeysToCamelCase = function(data){
+
+           return Object.keys(data).reduce(function(acc,key){
+                acc[key.charAt(0).toLowerCase()+ key.substr(1)] = data[key];
+                return acc;
+            },{});
+        };
+
+        let onPostSuccess = function(data, textStatus, jqXHR){
+
+            if(isAjaxAdd){
+
+                let template = buildTableRowTemplate(data);
+                appendTemplateToTable(template);
+
+            }else{
+                let data = convertObjectKeysToCamelCase(updateData);
+                data.id = userIdToWorkOn;
+                let template = buildTableRowTemplate(data);
+                updateRowWithTemplate(userIdToWorkOn,template);
+            }
+            onPostAjaxOperation();
+        };
+
+        let onFetchUserSuccess = function(data, textStatus, jqXHR){
+            console.log(data);
+            clearAllFieldValidation();
+            appendDataToModal(data);
+            isAjaxAdd = false;
+            displayFields(isAjaxAdd);
+            setModalTitle(isAjaxAdd);
+            //Display Modal Form
+            $('#modalUserForm').modal('toggle');
+        };
+
+        let appendDataToModal = function(data){
+            $("#firstName").val(data.firstName);
+            $("#lastName").val(data.lastName);
+            $("#email").val(data.email);
+            $("#phoneNumber").val(data.phoneNumber)
+        };
+
+        let onFetchUserError = function(jqXhr, textStatus, errorThrown){
+
+            alert("An Error occurred while fetching data");
+        };
+
+        let appendTemplateToTable = function(template){
+            $('#user-table').append(template);
+        };
+
+        updateRowWithTemplate = function(dataId,template){
+           $(`#data-${dataId}`).replaceWith(template);
+        };
+
+        let buildTableRowTemplate = function(user){
+
+            let col1 = `<th scope="row">${user.id}</th>`;
+            let col2 = `<td>${user.firstName}</td>`;
+            let col3 = `<td>${user.lastName}</td>`;
+            let col4 = `<td>${user.email}</td>`;
+            let col5 = `<td>${user.phoneNumber}</td>`;
+            let col6 = `<td><button data-id="${user.id}" class="btn btn-primary btn-sm edit-user"><i class="fa fa-edit mr-1"></i>Edit</button></td>`;
+
+            return `<tr id="data-${user.id}">${col1}${col2}${col3}${col4}${col5}${col6}</tr>`;
+        };
+
+        let onPostError = function(jqXhr, textStatus, errorThrown){
+
+          if(jqXhr.status == 400)
+          {
+             let errorObject = JSON.parse(jqXhr.responseText);
+             Object.keys(errorObject).forEach((key)=>{
+
+                errorObject[key].forEach((error)=>{
+                    let template = `<div>${error}</div>`;
+                    $(`#${key}_Validator`).append(template);
+                });
+             });
+          }
+        };
+
+        let setModalTitle = function(isAjaxAdd = true){
+            (isAjaxAdd) ? $('#modalUserForm .modal-title').html('New User') : $('#modalUserForm .modal-title').html('Edit User');
+        };
+
+        let clearFieldValidation = function(domNode){
+
+            let elmId = domNode.attr("id");
+            $(`#${elmId}_Validator`).html('');
+        };
+
+        let clearAllFieldValidation = function(){
+            $('.form-control').each(function(elm){
+             clearFieldValidation($(this));
+            });
+        };
+
+        let clearForm = function(){
+            $('#firstName').val('');
+            $('#lastName').val('');
+            $('#email').val('');
+            $('#phoneNumber').val('');
+            $('#password').val('');
+            $('#confirmPassword').val('');
+        };
+
+        let displayFields = function(isAjaxAdd=true){
+
+            let optionalFields = [$('#password'),$('#confirmPassword')];
+
+            optionalFields.forEach((field)=>{
+                let nodeParent = field.parent();
+                let className = "hide";
+                (isAjaxAdd) ? nodeParent.removeClass(className) : nodeParent.addClass(className);
+            });
+        };
+
+        //Clicked on Save Button
+        $('.ajax-btn').on("click",function(evt){
+
+            evt.preventDefault();
+            let url = (isAjaxAdd) ? userActionUrls["ADD"] : userActionUrls["UPDATE"]+userIdToWorkOn;
+            let headers = {
+                            RequestVerificationToken : $('input:hidden[name="__RequestVerificationToken"]').val(),
+                            Accept: "application/json"
+                       };
+
+             $.ajax({
+                        headers: headers,
+                        url:  url,
+                        dataType: "json",
+                        type : (isAjaxAdd) ? "POST" : "PUT",
+                        contentType: 'application/json',
+                        data : getData(isAjaxAdd)
+            })
+            .done(onPostSuccess)
+            .fail(onPostError);
+        });
+
+
+        //onClick of ADD button
+        $('#modalUserFormTrigger').on('click',function(evt){
+            evt.preventDefault();
+            clearForm();
+            clearAllFieldValidation();
+            isAjaxAdd = true;
+            displayFields(isAjaxAdd);
+            setModalTitle(isAjaxAdd);
+            $('#modalUserForm').modal('toggle');
+        });
+
+        //On Click of EDIT button
+        $(document.body).on("click",".edit-user",function(evt){
+
+            evt.preventDefault();
+
+            userIdToWorkOn = $(this).attr("data-id");
+            let url = userActionUrls["GET"]+userIdToWorkOn;
+            let headers = {
+                            RequestVerificationToken : $('input:hidden[name="__RequestVerificationToken"]').val(),
+                            Accept: "application/json"
+                        };
+
+            $.ajax({
+                    headers: headers,
+                    url:  url,
+                    dataType: "json",
+                    type : "GET",
+            })
+            .done(onFetchUserSuccess)
+            .fail(onFetchUserError);
+
+        });
+
+        //Remove validation on Input change
+        $(document.body).on("change",".form-control", function(evt){
+
+            clearFieldValidation($(this));
+        });
+    });
+    </script>
+}

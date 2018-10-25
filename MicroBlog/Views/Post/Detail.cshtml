@@ -1,0 +1,306 @@
+﻿@using MicroBlog.Models.ViewModels
+@model PostPagesViewModel
+@{
+    Layout = "~/Views/Shared/_GeneralLayout.cshtml";
+    ViewBag.Title = Model.Post.Title;
+
+}
+<div class="container-fluid post-wrapper">
+
+    <div class="row post-metadata-wrapper">
+        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-4 post-metadata">
+            <h1 class="title">@Model.Post.Title</h1>
+            <div class="synopsis">
+                @Model.Post.Synopsis
+            </div>
+            <div class="author">
+                @Model.Post.User.FirstName  @Model.Post.User.LastName
+            </div>
+            <div class="date-time">
+                <span>@Model.Post.UpdatedAt.ToString("dd/MM/yyyy")</span> . <span>3 min read</span>
+            </div>
+        </div>
+        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-8 banner-wrapper">
+            <img class="banner" src="~/StaticFiles/@Model.Post.Image" />
+        </div>
+    </div>
+
+    <div class="row container-fluid post-content-wrapper">
+        <div class="col-md-1 col-lg-1 col-xs-12">
+        </div>
+        <div class="col-md-10 offset-md-1 col-lg-7 offset-lg-1 col-xs-12">
+
+            @Html.Raw(Model.Post.Content)
+
+            <div class="comments-section">
+
+                <div class="header">
+                    Responses (<span>@Model.Comments.Count()</span>)
+                </div>
+
+                <!-- Comment Box Section-->
+                <div class="comment-box">
+                    <form asp-controller="Comment" asp-action="Create">
+                        <textarea class="z-depth-1" id="comment-editor"></textarea>
+                        <input id="postId" type="hidden" value="@Model.Post.Id" />
+                        <button id="btn-submit" class="btn btn-info btn-block my-4 btn-main" type="submit">Publish Comment</button>
+                    </form>
+                </div>
+                <!--End of Comment Box Section-->
+
+                @if (Model.Comments.Count() > 0)
+                {
+                    <!-- Reveal All responses-->
+                    <div id="comment-revealer" class="comment-revealer">
+                        <button>
+                            Show all responses
+                        </button>
+                    </div>
+                    <!--End of Reveal All responses-->
+                }
+
+                    <div id="comment-list" class="hide">
+                        @foreach (CommentInfoViewModel comment in Model.Comments)
+                        {
+                          <div class="comment-wrapper">
+                            <div class="comment-metadata">
+                                <div class="avatar-wrapper">
+                                    <img class="avatar" src="https://cdn-images-1.medium.com/fit/c/72/72/1*gUFxv9xmLDszNuoHKHRF6A@2x.jpeg" />
+                                </div>
+                                <div class="commenter-block">
+                                    <div class="commenter">
+                                        @comment.User.FirstName  @comment.User.LastName
+                                    </div>
+                                    <div class="comment-date">
+                                        @comment.UpdatedAt.ToString("dd/MM/yyyy")
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="comment-text">
+                                @Html.Raw(@comment.Description)
+                            </div>
+                          </div>
+                        }
+                     </div>
+                     <!--End of Comment List -->
+
+                    <!--Comment List -->
+
+                        @if (Model.CommentsPager.HasNext)
+                        {
+                            <!--Load More -->
+                            <div id="load-more" class="comment-revealer hide">
+                                <button id="loadMore">
+                                    Load More
+                                </button>
+                            </div>
+                            <!--End of Load More -->
+                        }
+
+                    </div>
+              </div>
+        </div>
+
+
+</div>
+
+@section Scripts{
+
+    <script src='https://cloud.tinymce.com/stable/tinymce.min.js'></script>
+    <script type="text/javascript">
+
+        $(document).ready(function(){
+
+            tinymce.init({
+                    selector: '#comment-editor',
+                    height: 200,
+                    theme: 'modern'
+            });
+
+            let ajaxPostClapReq = "ToCancelPostClapPrevReq";
+            let ajaxCommentClapReq = "ToCancelCommentClapPrevReq";
+            let actionUrls = {
+
+                "Clap-Post" : "@Url.Action("Create", "Post")",
+                "Clap-Comment" : "@Url.Action("Create", "Comment")",
+                "Create-Comment": "@Url.Action("Create", "Comment")"
+            };
+
+            let updateDomWithTemplate = function(template, prepend=true){
+
+                if(prepend){
+                    $('#comment-list').prepend(template);
+
+                }else{
+                   $('#comment-list').append(template);
+                }
+
+            };
+
+            let buildCompleteTemplate = function(comment){
+
+               let tags = [];
+               tags[0] = '<div class="comment-wrapper">';
+               tags[1] =  '<div class="comment-metadata">';
+               tags[2] =  '<div class="avatar-wrapper">';
+               tags[3] =  '<img class="avatar" src="https://cdn-images-1.medium.com/fit/c/72/72/1*gUFxv9xmLDszNuoHKHRF6A@2x.jpeg" />';
+               tags[4] =   '</div>';
+               tags[5] =         '<div class="commenter-block">';
+               tags[6] =              `<div class="commenter">';
+                                ${user.firstName}  ${user.lastName}
+                            </div>`;
+               tags[7] =             `<div class="comment-date">
+                                ${comment.dateCreated}
+                            </div>`;
+               tags[8] =`         </div>
+                    </div>`;
+
+                tags[9] =
+                    `<div class="comment-text">
+                        ${comment.description}
+                    </div>
+                </div>`;
+
+                return tags.join();
+            };
+            
+            //On click of publish comment button
+            $(document.body).on('click','#btn-submit', function(evt){
+                evt.preventDefault();
+                
+                let data = {
+                    "Description": $('#comment-editor').html(),
+                    "PostId": $('#postId').val(),
+                    "UserId": JSON.parse(localstorage.getItem("user")).Id
+                };
+                //Submission handler
+                data = JSON.stringify(data);
+                $.ajax({
+                    url: actionUrls["Create-Comment"],
+                    type: 'POST',
+                    data: data,
+                    dataType: 'JSON',
+                    contentType: 'application/json',
+                    success: function(data, textStatus, jqXHR) {
+                           //update comment block
+                           let template = buildCompleteTemplate(data);
+                           updateDomWithTemplate(template);
+                           $('#comment-editor').html('');
+                    },
+                    error: function(jqXhr, textStatus, errorThrown) {
+                        if(errorThrown == 'abort' || errorThrown == 'undefined') return;
+                        alert(errorThrown + "\r\n" + jqXhr.statusText + "\r\n" + jqXhr.responseText);
+                    }
+
+                });
+            });
+
+            //On click of Comment clap
+            $(document.body).on('click','.comment-clapper', function(evt){
+
+                evt.preventDefault();
+                let commentId = $(this).attr("data-comment-id");
+                let url = `${actionUrls["Clap-Comment"]}/${commentId}/clap`;
+                let that = $(this);
+
+                ajaxCommentClapReq = $.ajax({
+                    url: url,
+                    type: 'PUT',
+                    data: {},
+                    dataType: 'JSON',
+                    beforeSend : function() {
+                            if(ajaxCommentClapReq != 'ToCancelCommentClapPrevReq' && ajaxCommentClapReq.readyState < 4) {
+                                ajaxCommentClapReq.abort();
+                            }
+                    },
+                    success: function(data, textStatus, jqXHR) {
+                           //update comment clap count
+                           let commentClapCount = that.attr("data-count");
+                           that.attr("data-count",commentClapCount);
+
+                    },
+                    error: function(jqXhr, textStatus, errorThrown) {
+                        if(errorThrown == 'abort' || errorThrown == 'undefined') return;
+                        alert(errorThrown + "\r\n" + jqXhr.statusText + "\r\n" + jqXhr.responseText);
+                    }
+
+                });
+
+            });
+
+            //On click of Post clap
+            $(document.body).on('click','.post-clapper', function(evt){
+                evt.preventDefault();
+                let postId = $(this).attr("data-post-id");
+                let url = `${actionUrls["Clap-Post"]}/${postId}/clap`;
+                let that = $(this);
+
+                ajaxPostClapReq = $.ajax({
+                    url: url,
+                    type: 'PUT',
+                    data: {},
+                    dataType: 'JSON',
+                    beforeSend : function() {
+                            if(ajaxPostClapReq != 'ToCancelPostClapPrevReq' && ajaxPostClapReq.readyState < 4) {
+                                ajaxPostClapReq.abort();
+                            }
+                    },
+                    success: function(data, textStatus, jqXHR) {
+                           //update post clap count
+                           let postClapCount = that.attr("data-count");
+                           that.attr("data-count",postClapCount);
+
+                    },
+                    error: function(jqXhr, textStatus, errorThrown) {
+                        if(errorThrown == 'abort' || errorThrown == 'undefined') return;
+                        alert(errorThrown + "\r\n" + jqXhr.statusText + "\r\n" + jqXhr.responseText);
+                    }
+                });
+
+            });
+
+            //On click of revealer
+            $(document.body).on('click','#comment-revealer', function(evt){
+                evt.preventDefault();
+                $('#comment-list').removeClass('hide');
+                $('#load-more').removeClass('hide');
+                $(this).addClass('hide');
+            });
+
+            //On click of load more
+            $(document.body).on('click','#loadMore', function(evt){
+                evt.preventDefault();
+                let pageNumber = $(this).attr("data-page-number");
+                let that = $(this);
+
+                $.ajax({
+                    url: `/api/comment?PageNumber=${pageNumber}`,
+                    type: 'GET',
+                    data: data,
+                    dataType: 'JSON',
+                    success: function(data, textStatus, jqXHR) {
+                           //update comment block
+                           let comments = data.comments;
+                           let pager = data.commentPager;
+                           comments.forEach((comment)=>{
+                               let template = buildCompleteTemplate(comment);
+                               updateDomWithTemplate(template, false);
+                           });
+
+                           if(pager.hasNext){
+                               that.attr("data-page-number",pager.currentPage+1);
+                           }else{
+                               that.parent().addClass("hide");
+                           }
+                    },
+                    error: function(jqXhr, textStatus, errorThrown) {
+                        if(errorThrown == 'abort' || errorThrown == 'undefined') return;
+                        alert(errorThrown + "\r\n" + jqXhr.statusText + "\r\n" + jqXhr.responseText);
+                    }
+
+                });
+            });
+
+        });
+    </script>
+}

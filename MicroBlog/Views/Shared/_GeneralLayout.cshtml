@@ -1,0 +1,45 @@
+@using MicroBlog.Services.Interfaces;
+@using MicroBlog.Entities;
+@inject IAccountService accountService;
+
+@{
+
+    Layout = "~/Views/Shared/_MasterLayout.cshtml";
+    ApplicationUser currentUser = await accountService.GetCurrentUserAsync(Context.User);
+    List<string> userRoles = await accountService.GetRolesAsync(currentUser);
+    ViewBag.CurrentUser = currentUser;
+    ViewBag.UserRoles = userRoles;
+}
+
+
+
+<div class="wrapper">
+
+    <!--Side Menu-->
+        @await Html.PartialAsync("_Sidebar.cshtml")
+    <!--End of Side Menu-->
+
+
+    <!-- Page Content -->
+    <div id="content">
+
+        <!--Navbar -->
+            @await Html.PartialAsync("_Navbar.cshtml")
+        <!--End of Navbar -->
+
+        @RenderBody()
+
+        <!--Footer-->
+            @await Html.PartialAsync("_Footer.cshtml")
+        <!--End of Footer -->
+
+    </div>
+
+</div>
+
+@section scripts
+{
+  @RenderSection("Scripts", required: false)
+}
+
+

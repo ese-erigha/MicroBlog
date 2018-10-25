@@ -1,0 +1,47 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
+    <PackageReference Include="NetCore.AutoRegisterDi" Version="1.0.0" />
+    <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="5.0.1" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="2.1.4" />
+    <PackageReference Include="System.Drawing.Common" Version="4.5.1" />
+    <PackageReference Include="Hangfire" Version="1.6.20" />
+    <PackageReference Include="MailKit" Version="2.0.6" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Entities\" />
+    <Folder Include="Entities\Interfaces\" />
+    <Folder Include="Models\ViewModels\" />
+    <Folder Include="Models\Dto\" />
+    <Folder Include="Models\Dto\CreateDto\" />
+    <Folder Include="Models\Dto\ResponseDto\" />
+    <Folder Include="Repositories\" />
+    <Folder Include="Repositories\Interfaces\" />
+    <Folder Include="Repositories\Implementations\" />
+    <Folder Include="Services\" />
+    <Folder Include="Services\Interfaces\" />
+    <Folder Include="Services\Implementations\" />
+    <Folder Include="Profiles\" />
+    <Folder Include="Views\Post\" />
+    <Folder Include="StaticFiles\" />
+    <Folder Include="Helpers\Interfaces\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="Entities\ISoftDeletable.cs" />
+    <Compile Remove="Controllers\HomeController.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Remove="Views\Home\About.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="StaticFiles\1b15f814-58c1-44c4-97d7-79c5ad46b789.jpeg" />
+    <None Remove="StaticFiles\e0896fb7-103a-4248-bdd5-659ff24d5d1c.jpeg" />
+  </ItemGroup>
+</Project>
