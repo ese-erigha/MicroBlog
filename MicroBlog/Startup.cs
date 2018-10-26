@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using AutoMapper;
 using Hangfire;
+using Hangfire.SqlServer;
 using MicroBlog.Core;
 using MicroBlog.Core.Interfaces;
 using MicroBlog.Helpers;
@@ -80,8 +81,20 @@ namespace MicroBlog
             var connectionString = "Server = localhost,1433; Database = MicroBlog; User ID=sa; Password = lexEME5195..";
             services.AddDbContext<DatabaseContext>(options => options.UseSqlServer(connectionString));
 
-            var hangManConnectionString = "Server = localhost,1433; Database = MicroBlogHangMan; User ID=sa; Password = lexEME5195..";
-            services.AddHangfire(config => config.UseSqlServerStorage(Configuration[hangManConnectionString]));
+            var hangfireConnectionString = "Server = localhost,1433; Database = MicroBlogHangfireDB; User ID=sa; Password = lexEME5195..";
+
+
+            var hangfireOptions = new SqlServerStorageOptions
+            {
+                PrepareSchemaIfNecessary = true,
+                QueuePollInterval = TimeSpan.FromSeconds(60)  //Default polling of 15 seconds
+            };
+
+            services.AddHangfire(config =>
+            {
+                config.UseSqlServerStorage(hangfireConnectionString,hangfireOptions);
+
+            });
 
             services.AddIdentity<Entities.ApplicationUser, IdentityRole<long>>(options =>
             {

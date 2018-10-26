@@ -1,14 +1,8 @@
-@using MicroBlog.Services.Interfaces;
-@using MicroBlog.Entities;
-@inject IAccountService accountService;
+@*@inject IAccountService accountService;*@
 
 @{
 
     Layout = "~/Views/Shared/_MasterLayout.cshtml";
-    ApplicationUser currentUser = await accountService.GetCurrentUserAsync(Context.User);
-    List<string> userRoles = await accountService.GetRolesAsync(currentUser);
-    ViewBag.CurrentUser = currentUser;
-    ViewBag.UserRoles = userRoles;
 }
 
 
@@ -24,7 +18,7 @@
     <div id="content">
 
         <!--Navbar -->
-            @await Html.PartialAsync("_Navbar.cshtml")
+            @await Component.InvokeAsync("NavBar")
         <!--End of Navbar -->
 
         @RenderBody()

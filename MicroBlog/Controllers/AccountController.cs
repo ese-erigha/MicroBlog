@@ -23,12 +23,14 @@ namespace MicroBlog.Controllers
         readonly IMapper _mapper;
         readonly IAccountService _accountService;
         readonly IPaginationService _paginationService;
+        readonly IEmailService _emailService;
 
-        public AccountController(IMapper mapper, IAccountService accountService, IPaginationService paginationService)
+        public AccountController(IMapper mapper, IAccountService accountService, IPaginationService paginationService, IEmailService emailService)
         {
             _mapper = mapper;
             _accountService = accountService;
             _paginationService = paginationService;
+            _emailService = emailService;
         }
 
         [Route("auth/login", Name = "login")]
@@ -37,6 +39,7 @@ namespace MicroBlog.Controllers
             LoginViewModel model = new LoginViewModel() { ReturnUrl = returnUrl };
             return View(model);
         }
+ 
 
         [Route("auth/logout", Name = "logout")]
         public async Task<IActionResult> Logout()
@@ -53,7 +56,6 @@ namespace MicroBlog.Controllers
         {
             if (ModelState.IsValid)
             {
-
                 ApplicationUser user = await _accountService.FindByEmailAsync(model.Email);
 
                 if (user != null)
@@ -136,6 +138,8 @@ namespace MicroBlog.Controllers
                                 protocol: HttpContext.Request.Scheme);
 
                             //Send Email
+
+                            _emailService.SendEmailConfirmation(applicationUser, confirmationLink);
                             return RedirectToAction("login");
                         }
                     }
@@ -231,47 +235,6 @@ namespace MicroBlog.Controllers
             return View(viewModel);
         }
 
-
-        //[HttpPost("user/register")]
-        //[ValidateAntiForgeryToken]
-        //[ValidateModel(Disable = false)]
-        //public async Task<IActionResult> UserRegister([FromBody]RegisterViewModel model)
-        //{
-        //    IdentityResult result = null;
-        //    var user = await _accountService.FindByEmailAsync(model.Email);
-
-        //    if (user != null)
-        //    {
-        //        ModelState.AddModelError("global", "User account already exists");
-        //        return BadRequest(ModelState);
-        //    }
-
-        //    ApplicationUser applicationUser = _mapper.Map<ApplicationUser>(model);
-        //    result = await _accountService.CreateAsync(applicationUser, model.Password);
-
-        //    if (result.Succeeded)
-        //    {
-        //        result = await _accountService.AddUserToRoleAsync(applicationUser, "User");
-
-
-        //        if (result.Succeeded)
-        //        {
-        //            var viewModelToReturn = _mapper.Map<UserViewModel>(applicationUser);
-
-        //            return CreatedAtRoute(
-        //                routeName: "GetUserById",
-        //                routeValues: new { id = applicationUser.Id },
-        //                value: viewModelToReturn
-        //            );
-        //        }
-
-        //        return StatusCode(400);
-        //    }
-
-        //    return StatusCode(500);
-        //}
-
-
         [HttpGet("user/account/{id}", Name = "GetUserById")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> GetUserById(long id)
@@ -344,6 +307,7 @@ namespace MicroBlog.Controllers
                 string passwordResetUrl = Url.Action("ResetPassword", "Account", new { userid = user.Id, token = code }, protocol: HttpContext.Request.Scheme);
 
                 //Send Email with callback url
+                _emailService.SendResetPasswordRequestEmail(user, passwordResetUrl);
 
                 ViewBag.Message = "Password reset link has been sent to your email address!";
                 return View("Login");
