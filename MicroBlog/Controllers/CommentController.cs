@@ -43,7 +43,7 @@ namespace MicroBlog.Controllers
                 CommentPager = paginated.Pager
             };
 
-            return Ok(viewModel);
+            return new OkObjectResult(new ApiResponse<object> { Data = viewModel, Message="200 OK" });
         }
 
         [HttpPost]
@@ -58,7 +58,10 @@ namespace MicroBlog.Controllers
             var state = await _service.Commit();
 
             if(!state){
-                return StatusCode(500, "A problem occurred while handling your request");
+                return new ObjectResult(new ApiResponse<object> { Message = "An error occurred while handling your request" })
+                {
+                    StatusCode = 500
+                };
             }
 
             var modelToReturn = _mapper.Map<ResponseDto.CommentDto>(entity);
@@ -79,28 +82,44 @@ namespace MicroBlog.Controllers
             var entity = await _service.GetByIdAsync(id);
             if(entity == null)
             {
-                return NotFound();
+                return new NotFoundObjectResult(new ApiResponse<object> { Message = "Item does not exist" });
             }
 
             var model = _mapper.Map<ResponseDto.CommentDto>(entity);
 
-            return Ok(model);
+            return new OkObjectResult(new ApiResponse<ResponseDto.CommentDto> { Data = model , Message = "200 OK" });
         }
 
         [HttpPut("{id}/clap")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateClap(long id)
         {
+            ObjectResult result;
             var entity = await _service.GetByIdAsync(id);
             if (entity == null)
             {
-                return NotFound();
+                return new NotFoundObjectResult(new ApiResponse<object>{ Message = "Item does not exist" });
+
             }
             entity.Claps += 1;
 
             _service.Update(entity);
             var state = await _service.Commit();
-            return !state ? StatusCode(500, "A problem occurred while handling your request") : (IActionResult)NoContent();
+
+            if(!state)
+            {
+                result = new ObjectResult(new ApiResponse<object> { Message = "An error occurred while handling your request" })
+                {
+                    StatusCode = 500
+                };
+            }
+
+            result = new ObjectResult(new ApiResponse<object> { Message = "Item Update Successful" })
+            {
+                StatusCode = 204
+            };
+
+            return result;
         }
     }
 }
