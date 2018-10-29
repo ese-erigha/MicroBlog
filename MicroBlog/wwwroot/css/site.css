@@ -512,6 +512,14 @@ a.waves-effect, a.waves-light {
     }
 }
 
+.post-row .list-inline-item{
+   font-size: 17px;
+}
+
+.post-row .list-inline-item i {
+    font-size: 20px;
+}
+
 
 
 

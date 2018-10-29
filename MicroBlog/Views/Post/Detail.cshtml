@@ -35,7 +35,7 @@
             <div class="comments-section">
 
                 <div class="header">
-                    Responses (<span>@Model.Comments.Count()</span>)
+                    Responses (<span>@Model.Post.CommentCount</span>)
                 </div>
 
                 <!-- Comment Box Section-->
@@ -306,8 +306,6 @@
                     headers: headers,
                     success: function(data, textStatus, jqXHR) {
                            //update comment block
-                           console.log("Http Response");
-                           console.log(data);
                            let response = data.data;
                            let comments = response.comments;
                            let pager = response.commentPager;
