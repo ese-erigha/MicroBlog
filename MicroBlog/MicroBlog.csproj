@@ -43,6 +43,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Remove="Views\Home\About.cshtml" />
+    <Content Remove="Views\Shared\_Navbar.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <None Remove="StaticFiles\1b15f814-58c1-44c4-97d7-79c5ad46b789.jpeg" />

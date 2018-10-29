@@ -8,5 +8,7 @@ namespace MicroBlog.Services.Interfaces
     {
 
         IQueryable<CommentInfoViewModel> GetCommentsWithUser();
+
+        CommentInfoViewModel GetCommentWithUser(long userId);
     }
 }

@@ -36,5 +36,10 @@ namespace MicroBlog.Services.Implementations
                 UpdatedAt = comment.UpdatedAt
             });
         }
+
+        public CommentInfoViewModel GetCommentWithUser(long userId)
+        {
+            return GetCommentsWithUser().Where(x => x.Id == userId).SingleOrDefault();
+        }
     }
 }

@@ -6,7 +6,7 @@ namespace MicroBlog.Helpers
 {
     public class DefaultEmailProvider : IEmailProvider
     {
-        public Task SendMail(EmailMessage message)
+        public void SendMail(EmailMessage message)
         {
             throw new NotImplementedException();
         }

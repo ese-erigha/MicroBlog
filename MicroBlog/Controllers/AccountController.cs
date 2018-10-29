@@ -36,7 +36,7 @@ namespace MicroBlog.Controllers
         [Route("auth/login", Name = "login")]
         public IActionResult Login([FromQuery(Name = "ReturnUrl")] string returnUrl = "/")
         {
-            LoginViewModel model = new LoginViewModel() { ReturnUrl = returnUrl };
+            LoginViewModel model = new LoginViewModel() { ReturnUrl = returnUrl ?? "/" };
             return View(model);
         }
  
@@ -87,7 +87,6 @@ namespace MicroBlog.Controllers
                 }
                 else
                 {
-
                     ModelState.AddModelError(string.Empty, "Invalid user name or password");
                 }
             }
@@ -137,9 +136,8 @@ namespace MicroBlog.Controllers
                                 },
                                 protocol: HttpContext.Request.Scheme);
 
-                            //Send Email
-
                             _emailService.SendEmailConfirmation(applicationUser, confirmationLink);
+                            ViewBag.Message = "An email has been sent to your account for confirmation";
                             return RedirectToAction("login");
                         }
                     }
@@ -161,13 +159,14 @@ namespace MicroBlog.Controllers
             IdentityResult result = await _accountService.ConfirmEmailAsync(user, token);
             if (result.Succeeded)
             {
-                ViewBag.Message = "Email confirmed successfully!";
-                return View("Login");
+                TempData["Message"] = "Email confirmed successfully!";
+                return RedirectToAction("Login");
+
             }
             else
             {
-                ViewBag.Error = "Error while confirming your email!";
-                return View("Login");
+                TempData["Error"] = "Error while confirming your email!";
+                return RedirectToAction("Login");
             }
         }
 
@@ -285,10 +284,8 @@ namespace MicroBlog.Controllers
             {
                 var user = await _accountService.FindByEmailAsync(model.Email);
 
-
                 if (user == null)
                 {
-                    // Don't reveal that the user does not exist or is not confirmed
                     ModelState.AddModelError(string.Empty, "Account does not exist");
                     return View(model);
                 }
@@ -296,7 +293,7 @@ namespace MicroBlog.Controllers
                 bool isEmailConfirmed = await _accountService.IsEmailConfirmedAsync(user);
                 if (!isEmailConfirmed)
                 {
-                    ModelState.AddModelError(string.Empty, "Email has not been confirmed");
+                    ModelState.AddModelError(string.Empty, "Email has not been confirmed. Please check your email and confirm your account");
                     return View(model);
                 }
 
@@ -310,11 +307,36 @@ namespace MicroBlog.Controllers
                 _emailService.SendResetPasswordRequestEmail(user, passwordResetUrl);
 
                 ViewBag.Message = "Password reset link has been sent to your email address!";
-                return View("Login");
+                return View();
             }
 
             // If we got this far, something failed, redisplay form
             return View(model);
+        }
+
+
+        [HttpPost("auth/reset-password", Name ="PasswordReset")]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ResetPassword(ResetPasswordViewModel viewModel)
+        {
+            ApplicationUser user = await _accountService.FindByEmailAsync(viewModel.Email);
+
+            if (user == null)
+            {
+                TempData["Error"] = "You are not allowed to reset password";
+                return RedirectToAction("Login");
+            }
+
+            IdentityResult result = await _accountService.ResetPasswordAsync(user, viewModel.PasswordResetToken, viewModel.Password);
+            if (result.Succeeded)
+            {
+                TempData["Message"] = "Your password reset was successful!";
+                return RedirectToAction("Login");
+            }
+
+            TempData["Error"] = "Sorry.. Unable to reset your password";
+            return RedirectToAction("ForgotPassword");
         }
 
 
@@ -326,35 +348,12 @@ namespace MicroBlog.Controllers
 
             if (user == null)
             {
-                ViewBag.Error = "You are not allowed to reset password";
-                return View("Login");
+                TempData["Error"] = "You are not allowed to reset password";
+                return RedirectToAction("Login");
             }
 
             var viewModel = new ResetPasswordViewModel() { PasswordResetToken = token, Email = user.Email };
             return View(viewModel);
-        }
-
-        [AllowAnonymous]
-        [HttpPost("auth/reset-password")]
-        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordViewModel viewModel)
-        {
-            ApplicationUser user = await _accountService.FindByEmailAsync(viewModel.Email);
-
-            if (user == null)
-            {
-                ViewBag.Error = "You are not allowed to reset password";
-                return View("Login");
-            }
-
-            IdentityResult result = await _accountService.ResetPasswordAsync(user, viewModel.PasswordResetToken, viewModel.Password);
-            if (result.Succeeded)
-            {
-                ViewBag.Message = "Your password reset was successful!";
-                return View("Login");
-            }
-
-            ViewBag.Error = "Sorry.. Unable to reset your password";
-            return View("ForgotPassword");
         }
 
 

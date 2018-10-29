@@ -5,7 +5,7 @@ namespace MicroBlog.Helpers.Interfaces
 {
     public interface IEmailProvider
     {
-        Task SendMail(EmailMessage message);
+        void SendMail(EmailMessage message);
 
     }
 }

@@ -69,13 +69,7 @@
                     theme: 'modern',
                 });
 
-            @*$(document.body).on('mouseleave','#markdown-editor', function(evt){
-                //evt.preventDefault();
-                $('#content').val($('#markdown-editor').html());
-                //$('#form').submit();
-            });*@
-
-
+        
             $(document.body).on("change","#file-input",function(evt){
 
                 let filesCount = $(this)[0].files.length;

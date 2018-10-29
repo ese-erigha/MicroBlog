@@ -1,7 +1,7 @@
 ﻿using System;
 namespace MicroBlog.Helpers
 {
-    public class SendGridConfig
+    public class SendGridSettings
     {
         public string ApiKey { get; set; }
 

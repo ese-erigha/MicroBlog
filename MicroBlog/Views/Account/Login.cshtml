@@ -17,12 +17,22 @@
 
             <div class="form-row mb-4 text-danger" asp-validation-summary="ModelOnly"></div>
 
-            @if (ViewBag.Error)
+            @if ((string)TempData["Message"] != null)
+            {
+                <div class="form-row mb-4 text-success">@TempData["Message"].ToString()</div>
+            }
+
+            @if ((string)TempData["Error"] != null)
+            {
+                <div class="form-row mb-4 text-danger">@TempData["Error"].ToString()</div>
+            }
+
+            @if (ViewBag.Error != null)
             {
                 <div class="form-row mb-4 text-danger">@ViewBag.Error</div>
             }
 
-            @if (ViewBag.Message)
+            @if (ViewBag.Message != null)
             {
                 <div class="form-row mb-4 text-success">@ViewBag.Message</div>
             }
@@ -43,14 +53,15 @@
                 <div>
                     <!-- Remember me -->
                     <div class="custom-control custom-checkbox">
-                        <input asp-for="RememberBe" type="checkbox" class="custom-control-input" id="defaultLoginFormRemember" />
-                        <label asp-for="RememberBe" class="custom-control-label" for="defaultLoginFormRemember">Remember me</label>
+                        <input asp-for="RememberMe" type="checkbox" class="custom-control-input" id="defaultLoginFormRemember" />
+                        <label asp-for="RememberMe" class="custom-control-label" for="defaultLoginFormRemember">Remember me</label>
                     </div>
                 </div>
-                <div>
-                    <!-- Forgot password -->
-                    <a asp-controller="Account" asp-action="ForgotPassword">Forgot password?</a>
-                </div>
+            </div>
+
+            <div>
+                <!-- Forgot password -->
+                <a asp-controller="Account" asp-action="ForgotPassword">Forgot password?</a>
             </div>
 
             <input type="hidden" asp-for="ReturnUrl" value="@Model.ReturnUrl" />

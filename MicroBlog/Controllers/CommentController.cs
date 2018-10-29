@@ -32,7 +32,7 @@ namespace MicroBlog.Controllers
 
         [HttpGet]
         [ValidateAntiForgeryToken]
-        public IActionResult GetAll(PaginationInfo paginationInfo)
+        public IActionResult GetAll([FromQuery]PaginationInfo paginationInfo)
         {
             var comments = _service.GetCommentsWithUser();
             var paginated = _paginationService.Paginate(comments, paginationInfo);
@@ -77,9 +77,9 @@ namespace MicroBlog.Controllers
 
         [HttpGet("{id}")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> GetById(long id)
+        public IActionResult GetById(long id)
         {
-            var entity = await _service.GetByIdAsync(id);
+            var entity =  _service.GetCommentWithUser(id);
             if(entity == null)
             {
                 return new NotFoundObjectResult(new ApiResponse<object> { Message = "Item does not exist" });

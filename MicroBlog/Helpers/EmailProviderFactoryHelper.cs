@@ -1,4 +1,5 @@
 ﻿using System;
+using Hangfire;
 using MicroBlog.Helpers.Interfaces;
 using Microsoft.Extensions.Options;
 
@@ -6,12 +7,14 @@ namespace MicroBlog.Helpers
 {
 	public class EmailProviderFactoryHelper : IEmailProviderFactoryHelper
     {
+        readonly IBackgroundJobClient _backgroundJobClient;
+        readonly IOptions<SendGridSettings> _sendGridSettings;
+        public IEmailProvider _emailProvider;
 
-        readonly EmailConfiguration _emailConfiguration;
-
-        public EmailProviderFactoryHelper(IOptions<EmailConfiguration> emailConfiguration)
+        public EmailProviderFactoryHelper(IBackgroundJobClient backgroundJobClient, IOptions<SendGridSettings> sendGridSettings)
         {
-            _emailConfiguration = emailConfiguration.Value;
+            _backgroundJobClient = backgroundJobClient;
+            _sendGridSettings = sendGridSettings;
         }
 
         public IEmailProvider GetEmailProvider(EmailProviderType providerType)
@@ -19,11 +22,14 @@ namespace MicroBlog.Helpers
             switch(providerType)
             {
                 case EmailProviderType.SendGrid:
-                    return new SendGridEmailProvider(_emailConfiguration.SendGrid.ApiKey);
+                    _emailProvider = new SendGridEmailProvider(_backgroundJobClient,_sendGridSettings);
+                    break;
 
                 default:
-                    return new DefaultEmailProvider();
+                    _emailProvider = new DefaultEmailProvider();
+                    break;
             }
+            return _emailProvider;
         }
     }
 }

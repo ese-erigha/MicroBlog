@@ -7,14 +7,20 @@
         <form asp-action="@ViewBag.FormAction" asp-controller="Account" method="post" class="text-center border border-light p-5" novalidate>
             <p class="h4 mb-4">Sign up</p>
             @*@Html.ValidationSummary()
-                @Html.AntiForgeryToken()*@
+        @Html.AntiForgeryToken()*@
             <div class="form-row mb-4 text-danger" asp-validation-summary="ModelOnly"></div>
+
+
+            @if (ViewBag.Message != null)
+            {
+                <div class="form-row mb-4 text-success">@ViewBag.Message</div>
+            }
 
             <div class="form-row mb-4">
                 <div class="col">
                     <!-- First name -->
                     @*@Html.LabelFor(x => x.FirstName);
-                        @Html.EditorFor(x => x.FirstName, new { @class = "form-control", placeholder = "First name" })*@
+                @Html.EditorFor(x => x.FirstName, new { @class = "form-control", placeholder = "First name" })*@
                     <input asp-for="FirstName" type="text" id="defaultRegisterFormFirstName" class="form-control" placeholder="First name" />
                     <span asp-validation-for="FirstName" class="validation-feedback text-danger">
                     </span>
@@ -47,8 +53,8 @@
                     <!-- Password -->
                     <input asp-for="Password" type="password" id="defaultRegisterFormPassword" class="form-control" placeholder="Password" aria-describedby="defaultRegisterFormPasswordHelpBlock" />
                     @*<small id="defaultRegisterFormPasswordHelpBlock" class="form-text text-muted mb-4">
-                            At least 8 characters and 1 digit
-                        </small>*@
+                    At least 8 characters and 1 digit
+                </small>*@
                     <span asp-validation-for="Password" class="validation-feedback text-danger">
                     </span>
                 </div>
@@ -87,7 +93,7 @@
                 By clicking
                 <em>Sign up</em> you agree to our
                 <a href="" target="_blank">terms of service</a> @*and
-                    <a href="" target="_blank">terms of service</a>.*@
+            <a href="" target="_blank">terms of service</a>.*@
             </p>
         </form>
         <!-- Default form register -->

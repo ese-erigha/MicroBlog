@@ -9,18 +9,21 @@ using Microsoft.Extensions.Options;
 using MimeKit;
 using SendGrid;
 using SendGrid.Helpers.Mail;
+using EmailAddress = MicroBlog.Helpers.EmailAddress;
 
 namespace MicroBlog.Services.Implementations
 {
     public class EmailService : IEmailService
     {
-        readonly EmailConfiguration _emailConfiguration;
+        readonly SendGridSettings _sendGridSettings;
+        readonly SmtpSettings _smtpSettings;
         readonly IBackgroundJobClient _backgroundJobClient;
         readonly IEmailProviderFactoryHelper _emailProviderFactoryHelper;
 
-        public EmailService(IOptions<EmailConfiguration> emailConfiguration, IBackgroundJobClient backgroundJobClient, IEmailProviderFactoryHelper emailProviderFactoryHelper)
+        public EmailService(IOptions<SendGridSettings> sendGridSettings, IOptions<SmtpSettings> smtpSettings, IBackgroundJobClient backgroundJobClient, IEmailProviderFactoryHelper emailProviderFactoryHelper)
         {
-            _emailConfiguration = emailConfiguration.Value;
+            _sendGridSettings = sendGridSettings.Value;
+            _smtpSettings = smtpSettings.Value;
             _backgroundJobClient = backgroundJobClient;
             _emailProviderFactoryHelper = emailProviderFactoryHelper;
         }
@@ -29,28 +32,30 @@ namespace MicroBlog.Services.Implementations
         {
             //Build the Email Message
             var message = new EmailMessage();
-            message.To.Add(new Helpers.EmailAddress(){FirstName = user.FirstName, LastName = user.LastName, Address = user.Email});
+            message.To.Add(new EmailAddress{FirstName = user.FirstName, LastName = user.LastName, Address = user.Email});
             message.Substitutions.Add("-FirstName-", user.FirstName);
             message.Substitutions.Add("-LastName-", user.LastName);
             message.Substitutions.Add("-ConfirmationLink-", url);
-            message.TemplateId = _emailConfiguration.SendGrid.EmailVerification;
-            message.From = new Helpers.EmailAddress() {Address = _emailConfiguration.SmtpConfig.Username, Name = _emailConfiguration.SmtpConfig.FromName };
+            message.TemplateId = _sendGridSettings.EmailVerification;
+            message.From = new EmailAddress{Address = _smtpSettings.UserName, Name = _smtpSettings.FromName };
+            message.Subject = "Email Confirmation";
             IEmailProvider emailProvider = _emailProviderFactoryHelper.GetEmailProvider(EmailProviderType.SendGrid);
-            var jobId = _backgroundJobClient.Enqueue(() => emailProvider.SendMail(message));
+            emailProvider.SendMail(message);
         }
 
         public void SendResetPasswordRequestEmail(ApplicationUser user, string url)
         {
             //Build the Email Message
             var message = new EmailMessage();
-            message.To.Add(new Helpers.EmailAddress() { FirstName = user.FirstName, LastName = user.LastName, Address = user.Email });
+            message.To.Add(new EmailAddress{ FirstName = user.FirstName, LastName = user.LastName, Address = user.Email });
             message.Substitutions.Add("-FirstName-", user.FirstName);
             message.Substitutions.Add("-LastName-", user.LastName);
             message.Substitutions.Add("-PasswordResetLink-", url);
-            message.TemplateId = _emailConfiguration.SendGrid.PasswordReset;
-            message.From = new Helpers.EmailAddress() { Address = _emailConfiguration.SmtpConfig.Username, Name = _emailConfiguration.SmtpConfig.FromName };
+            message.TemplateId = _sendGridSettings.PasswordReset;
+            message.From = new EmailAddress{ Address = _smtpSettings.UserName, Name = _smtpSettings.FromName };
+            message.Subject = "Password Reset";
             IEmailProvider emailProvider = _emailProviderFactoryHelper.GetEmailProvider(EmailProviderType.SendGrid);
-            var jobId = _backgroundJobClient.Enqueue(() => emailProvider.SendMail(message));
+            emailProvider.SendMail(message);
         }
     }
 }

@@ -84,13 +84,17 @@
                      </div>
                      <!--End of Comment List -->
 
+
+                   <input type="hidden" id="total_pages" value="@Model.CommentsPager.TotalPages" />
+                   <input type="hidden" id="current_page" value="@Model.CommentsPager.CurrentPage"/>
+
                     <!--Comment List -->
 
                         @if (Model.CommentsPager.HasNext)
                         {
                             <!--Load More -->
                             <div id="load-more" class="comment-revealer hide">
-                                <button id="loadMore">
+                                <button id="loadMore" data-page-number="@Model.CommentsPager.CurrentPage">
                                     Load More
                                 </button>
                             </div>
@@ -107,6 +111,7 @@
 @section Scripts{
 
     <script src='https://cloud.tinymce.com/stable/tinymce.min.js'></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment.min.js"></script>
     <script type="text/javascript">
 
         $(document).ready(function(){
@@ -128,6 +133,7 @@
 
             let updateDomWithTemplate = function(template, prepend=true){
 
+                $('#comment-list').removeClass("hide");
                 if(prepend){
                     $('#comment-list').prepend(template);
 
@@ -138,45 +144,54 @@
             };
 
             let buildCompleteTemplate = function(comment){
-
-               let tags = [];
-               tags[0] = '<div class="comment-wrapper">';
-               tags[1] =  '<div class="comment-metadata">';
-               tags[2] =  '<div class="avatar-wrapper">';
-               tags[3] =  '<img class="avatar" src="https://cdn-images-1.medium.com/fit/c/72/72/1*gUFxv9xmLDszNuoHKHRF6A@2x.jpeg" />';
-               tags[4] =   '</div>';
-               tags[5] =         '<div class="commenter-block">';
-               tags[6] =              `<div class="commenter">';
-                                ${user.firstName}  ${user.lastName}
+               
+                    let commentDate = moment(comment.updatedAt).format("DD/MM/YYYY");
+                    let tags = [];
+                    tags[0] = '<div class="comment-wrapper">';
+                    tags[1] =  '<div class="comment-metadata">';
+                    tags[2] =  '<div class="avatar-wrapper">';
+                    tags[3] =  '<img class="avatar" src="https://cdn-images-1.medium.com/fit/c/72/72/1*gUFxv9xmLDszNuoHKHRF6A@2x.jpeg" />';
+                    tags[4] =   '</div>';
+                    tags[5] =         '<div class="commenter-block">';
+                    tags[6] =              `<div class="commenter">
+                                ${comment.user.firstName}  ${comment.user.lastName}
                             </div>`;
-               tags[7] =             `<div class="comment-date">
-                                ${comment.dateCreated}
+                    tags[7] =             `<div class="comment-date">
+                                ${commentDate}
                             </div>`;
-               tags[8] =`         </div>
-                    </div>`;
+                    tags[8] =`</div></div>`;
 
-                tags[9] =
-                    `<div class="comment-text">
-                        ${comment.description}
-                    </div>
-                </div>`;
+                    tags[9] =
+                            `<div class="comment-text">
+                                ${comment.description}
+                            </div>
+                        </div>`;
 
-                return tags.join();
+                    return tags.join(""); //Joins the array and separates with an empty string
             };
-            
+
             //On click of publish comment button
             $(document.body).on('click','#btn-submit', function(evt){
                 evt.preventDefault();
-                
+                tinymce.triggerSave();
+                let content = $('#comment-editor').val();
+            
                 let data = {
-                    "Description": $('#comment-editor').html(),
+                    "Description": content,
                     "PostId": $('#postId').val(),
-                    "UserId": JSON.parse(localstorage.getItem("user")).Id
+                    "UserId": $('#userId').val()
                 };
                 //Submission handler
+
+                let headers = {
+                            RequestVerificationToken : $('input:hidden[name="__RequestVerificationToken"]').val(),
+                            Accept: "application/json"
+                       };
+
                 data = JSON.stringify(data);
                 $.ajax({
                     url: actionUrls["Create-Comment"],
+                    headers: headers,
                     type: 'POST',
                     data: data,
                     dataType: 'JSON',
@@ -185,7 +200,7 @@
                            //update comment block
                            let template = buildCompleteTemplate(data);
                            updateDomWithTemplate(template);
-                           $('#comment-editor').html('');
+                           $('#comment-editor').val('');
                     },
                     error: function(jqXhr, textStatus, errorThrown) {
                         if(errorThrown == 'abort' || errorThrown == 'undefined') return;
@@ -263,32 +278,46 @@
             $(document.body).on('click','#comment-revealer', function(evt){
                 evt.preventDefault();
                 $('#comment-list').removeClass('hide');
-                $('#load-more').removeClass('hide');
+
+                let currentPage = $('#current_page').val();
+                let totalPages = $('#total_pages').val();
+
+                if(currentPage < totalPages)
+                {
+                  $('#load-more').removeClass('hide');
+                }
                 $(this).addClass('hide');
             });
 
             //On click of load more
             $(document.body).on('click','#loadMore', function(evt){
                 evt.preventDefault();
-                let pageNumber = $(this).attr("data-page-number");
+                let pageNumber = 1 + parseInt($(this).attr("data-page-number"));
                 let that = $(this);
+                let headers = {
+                            RequestVerificationToken : $('input:hidden[name="__RequestVerificationToken"]').val(),
+                            Accept: "application/json"
+                       };
 
                 $.ajax({
                     url: `/api/comment?PageNumber=${pageNumber}`,
                     type: 'GET',
-                    data: data,
                     dataType: 'JSON',
+                    headers: headers,
                     success: function(data, textStatus, jqXHR) {
                            //update comment block
-                           let comments = data.comments;
-                           let pager = data.commentPager;
+                           console.log("Http Response");
+                           console.log(data);
+                           let response = data.data;
+                           let comments = response.comments;
+                           let pager = response.commentPager;
                            comments.forEach((comment)=>{
                                let template = buildCompleteTemplate(comment);
                                updateDomWithTemplate(template, false);
                            });
 
                            if(pager.hasNext){
-                               that.attr("data-page-number",pager.currentPage+1);
+                               that.attr("data-page-number",pager.currentPage);
                            }else{
                                that.parent().addClass("hide");
                            }

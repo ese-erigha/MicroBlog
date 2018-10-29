@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -29,25 +30,46 @@ namespace MicroBlog
 {
     public class Startup
     {
-        public Startup(IConfiguration configuration)
+
+        public IConfiguration Configuration { get; set; }
+
+        public Startup(IHostingEnvironment env)
         {
-            Configuration = configuration;
+            var builder = new ConfigurationBuilder()
+                                            .SetBasePath(env.ContentRootPath)
+                                            .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+                                            .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true)
+                                            .AddEnvironmentVariables();
+
+            Configuration = builder.Build();
         }
 
-        public IConfiguration Configuration { get; }
+
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 
-            services.AddSingleton(Configuration);
+            //services.AddSingleton(Configuration);
 
-            services.AddSingleton<IEmailConfiguration>(Configuration.GetSection("EmailConfiguration").Get<EmailConfiguration>());
+            //Required to inject IOptions
+            services.AddOptions();
+            //Configure strongly typed settings objects
+            var sendGridSettingsSection = Configuration.GetSection("SendGridSettings");
+            services.Configure<SendGridSettings>(sendGridSettingsSection);
+
+            var smtpSettingsSection = Configuration.GetSection("SmtpSettings");
+            services.Configure<SmtpSettings>(smtpSettingsSection);
+
+
+            //Get App Settings
+            //var appSettings = emailSettingsSection.Get<EmailSettings>();
 
             services.AddDistributedMemoryCache();
-            services.AddSession();
+
+
+            services.AddSingleton<IConfiguration>(Configuration);
 
             var assemblyToScan = Assembly.Load("MicroBlog");
 
@@ -132,6 +154,9 @@ namespace MicroBlog
 
             });
 
+            services.AddSession();
+            services.AddSingleton<ITempDataProvider, CookieTempDataProvider>();
+
             services.AddMvc(
                         options =>
                         {
@@ -152,7 +177,8 @@ namespace MicroBlog
                             options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
                         }
                     })
-                    .SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+                    .SetCompatibilityVersion(CompatibilityVersion.Version_2_1)
+                    .AddSessionStateTempDataProvider();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -172,7 +198,7 @@ namespace MicroBlog
             app.UseHangfireDashboard();
             app.UseHangfireServer();
 
-            app.UseStaticFiles();   // For the wwwroot folder
+            app.UseStaticFiles();   //For the wwwroot folder
 
             app.UseStaticFiles(new StaticFileOptions
             {
@@ -181,7 +207,7 @@ namespace MicroBlog
                 RequestPath = "/StaticFiles"
             });
             app.UseHttpsRedirection();
-            app.UseCookiePolicy();
+            app.UseSession();
             app.UseAuthentication();
             app.UseMvc(routes => {
 
@@ -190,6 +216,7 @@ namespace MicroBlog
                     template: "{controller=Account}/{action=Register}"
                 );
             });
+            app.UseCookiePolicy(); //Should always come after app.UseMvc
         }
     }
 }
