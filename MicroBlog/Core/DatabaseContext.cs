@@ -71,7 +71,6 @@ namespace MicroBlog.Core
 
         public override int SaveChanges(bool acceptAllChangesOnSuccess)
         {
-
             OnBeforeSave();
             return base.SaveChanges(acceptAllChangesOnSuccess);
         }
